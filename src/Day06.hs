@@ -2,9 +2,9 @@ module Day06 where
 
 import Paths_Advent_of_Code_2k19
 import Common.Parsers
-import Data.List (stripPrefix, tails, inits)
+import Data.List                      (stripPrefix, tails, inits)
 import Data.Map.Strict as M
-import Data.Maybe (catMaybes)
+import Data.Tuple                     ( swap )
 import Text.Parsec                    ( parse )
 import Text.Parsec.String             ( Parser, parseFromFile )
 import Text.Parsec.Char               ( noneOf, char, endOfLine )
@@ -43,7 +43,7 @@ reachableFrom m o = case M.lookup o m of
     Just o' -> (o':reachableFrom m o')
 
 fromEdges :: [Edge] -> OrbitMap
-fromEdges = Prelude.foldr (\(com, sat) m -> insert sat com m) mempty
+fromEdges es = fromList $ swap <$> es
 
 objectP :: Parser Object
 objectP = many1 $ noneOf [')', '\n']
