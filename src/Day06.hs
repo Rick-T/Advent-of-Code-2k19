@@ -4,7 +4,7 @@ import Paths_Advent_of_Code_2k19
 import Control.Monad
 import Control.Monad.Reader
 import Common.Parsers
-import Data.List                      (stripPrefix, tails, inits)
+import Data.List                      ( stripPrefix, tails, inits )
 import Data.Map.Strict as M
 import Data.Tuple                     ( swap )
 import Text.Parsec                    ( parse )
@@ -19,19 +19,19 @@ type Edge = (Object, Object)
 type OrbitMap = Map Object Object
 
 solution1 :: IO Int
-solution1 = runReader numOrbits <$> fromEdges <$> readEdges
+solution1 = runReader numOrbits . fromEdges <$> readEdges
 
 solution2 :: IO Int
-solution2 = (+) (-1) <$> length <$> runReader (shortestPath "YOU" "SAN") <$> fromEdges <$> readEdges
+solution2 = (+) (-1) . length . runReader (shortestPath "YOU" "SAN") . fromEdges <$> readEdges
 
 shortestPath :: Object -> Object -> Reader OrbitMap [Object]
 shortestPath o1 o2 = do
     p1 <- reachableFrom o1
     p2 <- reachableFrom o2
-    return $ head [x ++ (init y) | x <- (tail $ inits p1), y <- (tail $ inits p2), last x == last y]
+    return $ head [x ++ init y | x <- tail $ inits p1, y <- tail $ inits p2, last x == last y]
 
 numOrbits :: Reader OrbitMap Int
-numOrbits = foldM (\i k -> (+i) <$> indirections k) 0 =<< keys <$> ask
+numOrbits = foldM (\i k -> (+i) <$> indirections k) 0 =<< asks keys
 
 indirections :: Object -> Reader OrbitMap Int
 indirections o = length <$> reachableFrom o
