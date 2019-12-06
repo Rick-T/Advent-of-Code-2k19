@@ -1,6 +1,8 @@
 module Day06 where
 
 import Paths_Advent_of_Code_2k19
+import Control.Monad
+import Control.Monad.Reader
 import Common.Parsers
 import Data.List                      (stripPrefix, tails, inits)
 import Data.Map.Strict as M
@@ -17,30 +19,29 @@ type Edge = (Object, Object)
 type OrbitMap = Map Object Object
 
 solution1 :: IO Int
-solution1 = numOrbits . fromEdges <$> readEdges
+solution1 = runReader numOrbits <$> fromEdges <$> readEdges
 
 solution2 :: IO Int
-solution2 = do
-    orbitMap <- fromEdges <$> readEdges
-    return $ (length $ shortestPath orbitMap "YOU" "SAN") - 1
+solution2 = (+) (-1) <$> length <$> runReader (shortestPath "YOU" "SAN") <$> fromEdges <$> readEdges
 
-shortestPath :: OrbitMap -> Object -> Object -> [Object]
-shortestPath m o1 o2 = let
-    p1 = reachableFrom m o1
-    p2 = reachableFrom m o2
-    in
-        head [x ++ (init y) | x <- (tail $ inits p1), y <- (tail $ inits p2), last x == last y]
+shortestPath :: Object -> Object -> Reader OrbitMap [Object]
+shortestPath o1 o2 = do
+    p1 <- reachableFrom o1
+    p2 <- reachableFrom o2
+    return $ head [x ++ (init y) | x <- (tail $ inits p1), y <- (tail $ inits p2), last x == last y]
 
-numOrbits :: OrbitMap -> Int
-numOrbits m = Prelude.foldr (\k i -> i + indirections m k) 0 $ keys m
+numOrbits :: Reader OrbitMap Int
+numOrbits = foldM (\i k -> (+i) <$> indirections k) 0 =<< keys <$> ask
 
-indirections :: OrbitMap -> Object -> Int 
-indirections m = length . reachableFrom m
+indirections :: Object -> Reader OrbitMap Int
+indirections o = length <$> reachableFrom o
 
-reachableFrom :: OrbitMap -> Object -> [Object]
-reachableFrom m o = case M.lookup o m of
-    Nothing -> []
-    Just o' -> (o':reachableFrom m o')
+reachableFrom :: Object -> Reader OrbitMap [Object]
+reachableFrom o = do
+    m <- ask
+    case M.lookup o m of
+        Nothing -> return []
+        Just o' -> (o':) <$> reachableFrom o'
 
 fromEdges :: [Edge] -> OrbitMap
 fromEdges es = fromList $ swap <$> es
