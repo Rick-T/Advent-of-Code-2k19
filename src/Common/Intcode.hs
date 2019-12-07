@@ -1,14 +1,13 @@
 module Common.Intcode where
 
 import Paths_Advent_of_Code_2k19
-import Common.Parsers (num)
-import Control.Monad (unless, when)
+import Common.Parsers ( num )
+import Control.Monad ( when )
 import Control.Monad.Trans.RWS.Lazy
-import Data.List ( permutations )
-import Data.Sequence as S hiding (length, reverse, take, drop)
-import Text.Parsec.String (Parser, parseFromFile)
-import Text.Parsec.Char (char)
-import Text.Parsec.Combinator (sepBy1)
+import Data.Sequence as S hiding ( reverse )
+import Text.Parsec.String ( Parser, parseFromFile )
+import Text.Parsec.Char ( char )
+import Text.Parsec.Combinator ( sepBy1 )
 
 type Memory = Seq Int
 
@@ -29,7 +28,7 @@ data StepResult = Done TerminationReason | NotDone
 data TerminationReason = Terminated | ConditionReached
 
 runProgram :: ComputerState ()
-runProgram = runUntil isTerm >>= return . const ()  
+runProgram = runUntil isTerm *> return ()  
 
 runUntil :: (OpCode -> Bool) -> ComputerState TerminationReason
 runUntil stopCode = do
@@ -43,7 +42,7 @@ stepOnce stopPred = do
   curVal <- readInst
   case toOpCode curVal of
     Term -> return $ Done Terminated
-    a -> incrementInst *> executeAction a >>= const (return $ if stopPred a then Done ConditionReached else NotDone)
+    a -> incrementInst *> executeAction a *> (return $ if stopPred a then Done ConditionReached else NotDone)
 
 isTerm :: OpCode -> Bool
 isTerm Term = True

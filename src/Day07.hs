@@ -19,14 +19,12 @@ solution1 = do
 solution2 :: IO Int
 solution2 = do
   mem <- loadMemory "input/Day07/input.txt"
-  let sigForPerm ps = fst $ evalRWS (loopAmp *> gets signal) () $ initAmplifier ps $ mem
+  let sigForPerm ps = fst $ evalRWS (loopAmp *> gets signal) () $ initAmplifier ps mem
   return $ maximum [sigForPerm p | p <- permutations [5, 6, 7, 8, 9]]
 
 initAmplifier :: [Int] -> Memory -> Amplifier
 initAmplifier phases m = let
-  (computers, outputs) = Prelude.unzip $ Prelude.scanl (\(c, o) p -> initAmpModule p o m) (initComputer m, 0) phases
-  signal = last outputs
-  (active:idle) = tail computers
+  (_:active:idle, signal) = fmap last . unzip $ scanl (\(c, o) p -> initAmpModule p o m) (initComputer m, 0) phases
   in
     Amp active idle signal
 
