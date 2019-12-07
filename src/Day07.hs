@@ -8,19 +8,19 @@ import Data.List ( permutations )
 
 data Amplifier = Amp {active :: Computer, idle :: [Computer], signal :: Int} deriving Show
 
-type AmplifierState = RWS () () Amplifier
+type AmplifierState = RWS () [Int] Amplifier
 
 solution1 :: IO Int
 solution1 = do
   mem <- loadMemory "input/Day07/input.txt"
   let sigForPerm ps = fst $ evalRWS (loopAmp *> gets signal) () $ initAmplifier ps mem
-  return $ maximum [sigForPerm p | p <- permutations [0, 1, 2, 3, 4]]
+  return $ maximum [sigForPerm p | p <- permutations [0..4]]
 
 solution2 :: IO Int
 solution2 = do
   mem <- loadMemory "input/Day07/input.txt"
   let sigForPerm ps = fst $ evalRWS (loopAmp *> gets signal) () $ initAmplifier ps mem
-  return $ maximum [sigForPerm p | p <- permutations [5, 6, 7, 8, 9]]
+  return $ maximum [sigForPerm p | p <- permutations [5..9]]
 
 initAmplifier :: [Int] -> Memory -> Amplifier
 initAmplifier phases m = let
@@ -39,6 +39,9 @@ loopAmp = do
 stepAmp :: AmplifierState Bool
 stepAmp = do
   (terminated, c', sigs) <- uncurry (runRWS $ runUntil isOutput) <$> ((,) <$> gets signal <*> gets active)
+  cs <- gets idle
+  let sig' = last sigs
+  let cs' = cs ++ [c']
   case terminated of
     Terminated -> return True
-    ConditionReached -> modify (\(Amp _ cs sig) -> Amp (head cs) (tail cs ++ [c']) $ last sigs) *> return False
+    ConditionReached -> tell [sig'] *> put (Amp (head cs') (tail cs') sig') *> return False
