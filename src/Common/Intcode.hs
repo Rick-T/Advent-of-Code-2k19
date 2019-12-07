@@ -1,9 +1,10 @@
-module Intcode where
+module Common.Intcode where
 
 import Paths_Advent_of_Code_2k19
 import Common.Parsers (num)
 import Control.Monad (unless, when)
 import Control.Monad.Trans.RWS.Lazy
+import Data.List ( permutations )
 import Data.Sequence as S hiding (length, reverse, take, drop)
 import Text.Parsec.String (Parser, parseFromFile)
 import Text.Parsec.Char (char)
@@ -15,7 +16,7 @@ type Addr = Int
 
 type InstructionPointer = Addr
 
-data Computer = Computer { inst :: InstructionPointer, mem :: Memory } deriving Show
+data Computer = Computer {inst :: InstructionPointer, mem :: Memory } deriving Show
 
 type ComputerState = RWS Int [Int] Computer
 
@@ -23,34 +24,38 @@ data ParameterMode = Position | Immediate deriving Show
 
 data OpCode = Add (ParameterMode, ParameterMode) | Mult (ParameterMode, ParameterMode) | Input | Output ParameterMode | JumpT (ParameterMode, ParameterMode) | JumpF (ParameterMode, ParameterMode) | IsLess (ParameterMode, ParameterMode) | IsEqual (ParameterMode, ParameterMode) | Term deriving Show
 
-type Done = Bool
+data StepResult = Done TerminationReason | NotDone
 
-solution1 :: IO Int
-solution1 = fst . evalRWS (runProgram *> readAddr 0) 1 <$> initComputer <$> initMemory 12 2 <$> loadMemory "input/Day02/input01.txt"
-
-solution2 :: IO Int
-solution2 = (\m -> head [ 100 * x + y | x <- [0 .. 99], y <- [0 .. 99], (fst . evalRWS (runProgram *> readAddr 0) 1 $ initComputer $ initMemory x y m) == 19690720]) <$> loadMemory "input/Day02/input01.txt"
-
-solution3 :: IO [Int]
-solution3 = snd . evalRWS runProgram 1 <$> initComputer <$> loadMemory "input/Day05/input01.txt"
-
-solution4 :: IO [Int]
-solution4 = snd . evalRWS runProgram 5 <$> initComputer <$> loadMemory "input/Day05/input01.txt"
-
-checkExample :: Int -> IO [Int]
-checkExample i = snd . evalRWS runProgram i <$> initComputer <$> loadMemory "input/Day05/example.txt"
+data TerminationReason = Terminated | ConditionReached
 
 runProgram :: ComputerState ()
-runProgram = do
-  done <- stepOnce
-  unless done runProgram
+runProgram = runUntil isTerm >>= return . const ()  
 
-stepOnce :: ComputerState Done
-stepOnce = do
-  curVal <- consumeInst
+runUntil :: (OpCode -> Bool) -> ComputerState TerminationReason
+runUntil stopCode = do
+  stepResult <- stepOnce stopCode
+  case stepResult of
+    NotDone -> runUntil stopCode
+    Done t -> return t
+
+stepOnce :: (OpCode -> Bool) -> ComputerState StepResult
+stepOnce stopPred = do
+  curVal <- readInst
   case toOpCode curVal of
-    Term  -> return True
-    a -> executeAction a >>= (\() -> return False)
+    Term -> return $ Done Terminated
+    a -> incrementInst *> executeAction a >>= const (return $ if stopPred a then Done ConditionReached else NotDone)
+
+isTerm :: OpCode -> Bool
+isTerm Term = True
+isTerm _ = False
+
+isInput :: OpCode -> Bool
+isInput Input = True
+isInput _ = False
+
+isOutput :: OpCode -> Bool
+isOutput (Output _) = True
+isOutput _ = False
 
 executeAction :: OpCode -> ComputerState ()
 executeAction (Add ms) = arithmeticAction ms (+)
@@ -59,8 +64,9 @@ executeAction Input = processInput
 executeAction (Output m) = processOutput m
 executeAction (JumpT ms) = jumpIf ms (/= 0)
 executeAction (JumpF ms) = jumpIf ms (== 0)
-executeAction (IsLess ms) = Intcode.compare ms (<)
-executeAction (IsEqual ms) = Intcode.compare ms (==)
+executeAction (IsLess ms) = Common.Intcode.compare ms (<)
+executeAction (IsEqual ms) = Common.Intcode.compare ms (==)
+executeAction Term = return ()
 
 arithmeticAction :: (ParameterMode, ParameterMode) -> (Int -> Int -> Int) -> ComputerState ()
 arithmeticAction (m1, m2) f = do
@@ -117,9 +123,7 @@ readAddr x = do
     Nothing  -> error "Sequence index out of bounds"
 
 readInst :: ComputerState Int
-readInst = do
-  (Computer inst _) <- get
-  readAddr inst
+readInst = readAddr =<< inst <$> get
 
 writeAddr :: Addr -> Int -> ComputerState ()
 writeAddr addr val = modify $ \(Computer inst mem) -> Computer inst (update addr val mem)
@@ -154,7 +158,7 @@ toNumber :: [Int] -> Int
 toNumber = foldl (\total p -> 10 * total + p) 0
 
 initComputer :: Memory -> Computer
-initComputer = Computer 0 
+initComputer = Computer 0
 
 initMemory :: Int -> Int -> Memory -> Memory
 initMemory noun verb mem = let 

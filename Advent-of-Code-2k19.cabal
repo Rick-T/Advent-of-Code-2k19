@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d5bd36415e83d9bb77198e1274d1ad3af144910ea3dd76811bb04fb027799ba9
+-- hash: 28411a0c3acc7e9d2aa39db1a740f58e10de76620e22967dd4e155576d42771d
 
 name:           Advent-of-Code-2k19
 version:        0.1.0.0
@@ -27,6 +27,8 @@ data-files:
     input/Day05/example.txt
     input/Day05/input01.txt
     input/Day06/input.txt
+    input/Day07/example.txt
+    input/Day07/input.txt
 
 source-repository head
   type: git
@@ -34,13 +36,15 @@ source-repository head
 
 library
   exposed-modules:
+      Common.Intcode
       Common.Parsers
       Day01
       Day02
       Day03
       Day04
+      Day05
       Day06
-      Intcode
+      Day07
   other-modules:
       Paths_Advent_of_Code_2k19
   hs-source-dirs:
