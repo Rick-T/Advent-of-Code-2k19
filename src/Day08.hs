@@ -34,7 +34,7 @@ solution1 = do
 solution2 :: IO ()
 solution2 = do
     image <- loadImage
-    mapM_ print $ chunksOf width [ mconcat stack | stack <- transpose image ]
+    mapM_ print $ chunksOf width $ mconcat <$> transpose image
 
 loadImage :: IO Image
 loadImage = do
