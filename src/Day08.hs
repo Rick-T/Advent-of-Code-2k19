@@ -20,6 +20,12 @@ instance Semigroup Pixel where
     Transparent <> p = p
     p <> _ = p
 
+instance Show Pixel where
+    show White = "\x2591"
+    show Black = "\x2588"
+    show Transparent = " "
+    showList = foldl (\f p -> f . shows p) id
+
 solution1 :: IO Int
 solution1 = do
     image <- loadImage
@@ -28,11 +34,7 @@ solution1 = do
 solution2 :: IO ()
 solution2 = do
     image <- loadImage
-    mapM_ putStrLn $ chunksOf width [ toReadable $ mconcat stack | stack <- transpose image ]
-
-toReadable :: Pixel -> Char
-toReadable White = '\x2591'
-toReadable Black = '\x2588'
+    mapM_ print $ chunksOf width [ mconcat stack | stack <- transpose image ]
 
 loadImage :: IO Image
 loadImage = do
