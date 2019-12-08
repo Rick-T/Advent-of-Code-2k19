@@ -4,6 +4,7 @@ import Paths_Advent_of_Code_2k19
 import Common.Intcode
 import Control.Monad ( unless )
 import Control.Monad.Trans.RWS.Lazy
+import Data.Functor ( ($>) )
 import Data.List ( permutations )
 
 data Amplifier = Amp {active :: Computer, idle :: [Computer], signal :: Int} deriving Show
@@ -44,4 +45,4 @@ stepAmp = do
   let cs' = cs ++ [c']
   case terminated of
     Terminated -> return True
-    ConditionReached -> tell [sig'] *> put (Amp (head cs') (tail cs') sig') *> return False
+    ConditionReached -> tell [sig'] *> put (Amp (head cs') (tail cs') sig') $> False

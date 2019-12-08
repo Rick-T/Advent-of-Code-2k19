@@ -4,6 +4,8 @@ import Paths_Advent_of_Code_2k19
 import Common.Parsers ( num )
 import Control.Monad ( when )
 import Control.Monad.Trans.RWS.Lazy
+import Common.Util ( toDigits )
+import Data.Functor ( ($>) )
 import Data.Sequence as S hiding ( reverse )
 import Text.Parsec.String ( Parser, parseFromFile )
 import Text.Parsec.Char ( char )
@@ -28,7 +30,7 @@ data StepResult = Done TerminationReason | NotDone
 data TerminationReason = Terminated | ConditionReached
 
 runProgram :: ComputerState ()
-runProgram = runUntil isTerm *> return ()  
+runProgram = runUntil isTerm $> ()  
 
 runUntil :: (OpCode -> Bool) -> ComputerState TerminationReason
 runUntil stopCode = do
@@ -42,7 +44,7 @@ stepOnce stopPred = do
   curVal <- readInst
   case toOpCode curVal of
     Term -> return $ Done Terminated
-    a -> incrementInst *> executeAction a *> (return $ if stopPred a then Done ConditionReached else NotDone)
+    a -> incrementInst *> executeAction a $> if stopPred a then Done ConditionReached else NotDone
 
 isTerm :: OpCode -> Bool
 isTerm Term = True
@@ -145,16 +147,12 @@ toOpCode val = let
       7 -> IsLess (m1, m2)
       8 -> IsEqual (m1, m2)
       99 -> Term
+      c -> error $ "Invalid OpCode: " ++ show c
 
 toParameterMode :: Int -> ParameterMode
 toParameterMode 0 = Position
 toParameterMode 1 = Immediate
-
-toDigits :: Int -> [Int]
-toDigits = fmap (read . return) <$> show
-
-toNumber :: [Int] -> Int
-toNumber = foldl (\total p -> 10 * total + p) 0
+toParameterMode m = error $ "Invalid parameter mode: " ++ show m
 
 initComputer :: Memory -> Computer
 initComputer = Computer 0

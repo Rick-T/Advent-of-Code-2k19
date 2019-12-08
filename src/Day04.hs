@@ -1,6 +1,7 @@
 module Day04 where
 
 import Paths_Advent_of_Code_2k19
+import Common.Util ( toNumber )
 import Data.List
 
 type Password = [Int]
@@ -16,9 +17,6 @@ candidates = [ [a, b, c, d, e, f] | a <- [1 .. 6], b <- [a .. 9], c <- [b .. 9],
 
 isInRange :: Password -> Bool
 isInRange = (\x -> x >= passMin && x <= passMax) . toNumber
-
-toNumber :: Password -> Int
-toNumber = foldl (\total p -> 10 * total + p) 0
 
 hasGroupOf2 :: Password -> Bool
 hasGroupOf2 = any (\x -> length x >= 2) . group

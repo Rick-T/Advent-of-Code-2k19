@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 28411a0c3acc7e9d2aa39db1a740f58e10de76620e22967dd4e155576d42771d
+-- hash: e6b34da62a8ec9ffbf7a05adc70ee412e370409d3f3965604070cec3b7e31e47
 
 name:           Advent-of-Code-2k19
 version:        0.1.0.0
@@ -29,6 +29,7 @@ data-files:
     input/Day06/input.txt
     input/Day07/example.txt
     input/Day07/input.txt
+    input/Day08/input.txt
 
 source-repository head
   type: git
@@ -38,6 +39,7 @@ library
   exposed-modules:
       Common.Intcode
       Common.Parsers
+      Common.Util
       Day01
       Day02
       Day03
@@ -45,6 +47,7 @@ library
       Day05
       Day06
       Day07
+      Day08
   other-modules:
       Paths_Advent_of_Code_2k19
   hs-source-dirs:
@@ -54,6 +57,7 @@ library
     , containers
     , mtl
     , parsec
+    , split
     , transformers
   default-language: Haskell2010
 
@@ -70,6 +74,7 @@ executable Advent-of-Code-2k19-exe
     , containers
     , mtl
     , parsec
+    , split
     , transformers
   default-language: Haskell2010
 
@@ -87,5 +92,6 @@ test-suite Advent-of-Code-2k19-test
     , containers
     , mtl
     , parsec
+    , split
     , transformers
   default-language: Haskell2010

@@ -2,6 +2,7 @@ module Day03 where
 
 import Paths_Advent_of_Code_2k19
 import Common.Parsers
+import Common.Util                    ( mapBoth)
 import Data.Foldable
 import Data.List
 import Data.Ord
@@ -66,9 +67,6 @@ loadWires = do
     case result of
         Left  err  -> error $ show err
         Right succ -> return $ mapBoth wire succ
-
-mapBoth :: (a -> b) -> (a, a) -> (b, b)
-mapBoth f (x, y) = (f x, f y)
 
 directionP :: Parser Direction
 directionP = do
