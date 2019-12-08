@@ -6,11 +6,11 @@ import Data.List
 
 type Password = [Int]
 
-passMin :: Int
-passMin = 197487
+part1 :: Int
+part1 = length $ filter (\x -> isInRange x && hasGroupOf2 x) candidates
 
-passMax :: Int
-passMax = 673251
+part2 :: Int
+part2 = length $ filter (\x -> isInRange x && hasGroupOfExactly2 x) candidates
 
 candidates :: [Password]
 candidates = [ [a, b, c, d, e, f] | a <- [1 .. 6], b <- [a .. 9], c <- [b .. 9], d <- [c .. 9], e <- [d .. 9], f <- [e .. 9] ]
@@ -24,8 +24,8 @@ hasGroupOf2 = any (\x -> length x >= 2) . group
 hasGroupOfExactly2 :: Password -> Bool
 hasGroupOfExactly2 = any (\x -> length x == 2) . group
 
-solution1 :: Int
-solution1 = length $ filter (\x -> isInRange x && hasGroupOf2 x) candidates
+passMin :: Int
+passMin = 197487
 
-solution2 :: Int
-solution2 = length $ filter (\x -> isInRange x && hasGroupOfExactly2 x) candidates
+passMax :: Int
+passMax = 673251

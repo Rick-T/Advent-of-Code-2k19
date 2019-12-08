@@ -11,15 +11,15 @@ data Amplifier = Amp {active :: Computer, idle :: [Computer], signal :: Int} der
 
 type AmplifierState = RWS () [Int] Amplifier
 
-solution1 :: IO Int
-solution1 = do
-  mem <- loadMemory "input/Day07/input.txt"
+part1 :: IO Int
+part1 = do
+  mem <- loadMemory "input/Day07.txt"
   let sigForPerm ps = fst $ evalRWS (loopAmp *> gets signal) () $ initAmplifier ps mem
   return $ maximum [sigForPerm p | p <- permutations [0..4]]
 
-solution2 :: IO Int
-solution2 = do
-  mem <- loadMemory "input/Day07/input.txt"
+part2 :: IO Int
+part2 = do
+  mem <- loadMemory "input/Day07.txt"
   let sigForPerm ps = fst $ evalRWS (loopAmp *> gets signal) () $ initAmplifier ps mem
   return $ maximum [sigForPerm p | p <- permutations [5..9]]
 

@@ -18,11 +18,11 @@ type Edge = (Object, Object)
 
 type OrbitMap = Map Object Object
 
-solution1 :: IO Int
-solution1 = runReader numOrbits . fromEdges <$> readEdges
+part1 :: IO Int
+part1 = runReader numOrbits . fromEdges <$> readEdges
 
-solution2 :: IO Int
-solution2 = (+) (-1) . length . runReader (shortestPath "YOU" "SAN") . fromEdges <$> readEdges
+part2 :: IO Int
+part2 = (+) (-1) . length . runReader (shortestPath "YOU" "SAN") . fromEdges <$> readEdges
 
 shortestPath :: Object -> Object -> Reader OrbitMap [Object]
 shortestPath o1 o2 = do
@@ -62,7 +62,7 @@ example = case parse edgesP "" "COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ
 
 readEdges :: IO [Edge]
 readEdges = do
-    f <- getDataFileName "input/Day06/input.txt"
+    f <- getDataFileName "input/Day06.txt"
     result <- parseFromFile edgesP f 
     case result of
         Left err   -> error $ show err

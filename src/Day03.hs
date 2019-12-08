@@ -22,11 +22,11 @@ type Location = (Int, Int)
 
 type Wire = [Location]
 
-solvePart1 :: IO Int
-solvePart1 = fmap (manhattanDistance . closestIntersection) loadWires
+part1 :: IO Int
+part1 = fmap (manhattanDistance . closestIntersection) loadWires
 
-solvePart2 :: IO Int
-solvePart2 = fmap optimalDistance loadWires
+part2 :: IO Int
+part2 = fmap optimalDistance loadWires
 
 closestIntersection :: (Wire, Wire) -> Location
 closestIntersection wires = (!! 1) $ sortOn manhattanDistance $ toList $ intersections wires
@@ -62,7 +62,7 @@ moveDir R (x, y) = (x + 1, y)
 
 loadWires :: IO (Wire, Wire)
 loadWires = do
-    fileName <- getDataFileName "input/Day03/input01.txt"
+    fileName <- getDataFileName "input/Day03.txt"
     result   <- parseFromFile wiresInstructionsP fileName
     case result of
         Left  err  -> error $ show err

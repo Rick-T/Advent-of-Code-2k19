@@ -30,7 +30,9 @@ dependencies:
 library:
   source-dirs: src/
 
-data-files: input/*/*.txt
+data-files:
+  - input/*/*.txt
+  - input/*.txt
 
 other-modules: Paths_Advent-of-Code-2k19
 

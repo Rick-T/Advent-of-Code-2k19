@@ -3,7 +3,7 @@ module Day08 where
 import Paths_Advent_of_Code_2k19
 import Common.Util ( mapBoth )
 import Data.Foldable ( maximumBy )
-import Data.Function ( on)
+import Data.Function ( on )
 import Data.List
 import Data.List.Split
 
@@ -26,19 +26,19 @@ instance Show Pixel where
     show Transparent = " "
     showList = foldl (\f p -> f . shows p) id
 
-solution1 :: IO Int
-solution1 = do
+part1 :: IO Int
+part1 = do
     image <- loadImage
     return $ uncurry (*) $ mapBoth length $ partition (== White) $ maximumBy (compare `on` length) $ filter (/= Black) <$> image
 
-solution2 :: IO ()
-solution2 = do
+part2 :: IO ()
+part2 = do
     image <- loadImage
     mapM_ print $ chunksOf width $ mconcat <$> transpose image
 
 loadImage :: IO Image
 loadImage = do
-    image <- readFile =<< getDataFileName "input/Day08/input.txt"
+    image <- readFile =<< getDataFileName "input/Day08.txt"
     return $ chunksOf resolution $ toPixel <$> image 
 
 toPixel :: Char -> Pixel
