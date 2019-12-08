@@ -13,6 +13,13 @@ type Layer = [Pixel]
 
 data Pixel = Black | White | Transparent deriving Eq
 
+instance Monoid Pixel where
+    mempty = Transparent
+
+instance Semigroup Pixel where
+    Transparent <> p = p
+    p <> _ = p
+
 solution1 :: IO Int
 solution1 = do
     image <- loadImage
@@ -21,17 +28,11 @@ solution1 = do
 solution2 :: IO ()
 solution2 = do
     image <- loadImage
-    let pixels = [ finalPixel stack | stack <- [fmap (!! i) image | i <- [0..resolution - 1]] ]
-    mapM_ putStrLn $ chunksOf width [ toReadable $ finalPixel stack | stack <- [fmap (!! i) image | i <- [0..resolution - 1]] ]
+    mapM_ putStrLn $ chunksOf width [ toReadable $ mconcat stack | stack <- transpose image ]
 
 toReadable :: Pixel -> Char
 toReadable White = '\x2591'
 toReadable Black = '\x2588'
-
-finalPixel :: Layer -> Pixel
-finalPixel l = case dropWhile (== Transparent) l of
-    [] -> Transparent
-    (p:_) -> p
 
 loadImage :: IO Image
 loadImage = do
