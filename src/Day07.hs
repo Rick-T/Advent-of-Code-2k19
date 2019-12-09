@@ -7,29 +7,29 @@ import Control.Monad.Trans.RWS.Lazy
 import Data.Functor ( ($>) )
 import Data.List ( permutations )
 
-data Amplifier = Amp {active :: Computer, idle :: [Computer], signal :: Int} deriving Show
+data Amplifier = Amp {active :: Computer, idle :: [Computer], signal :: Integer} deriving Show
 
-type AmplifierState = RWS () [Int] Amplifier
+type AmplifierState = RWS () [Integer] Amplifier
 
-part1 :: IO Int
+part1 :: IO Integer
 part1 = do
   mem <- loadMemory "input/Day07.txt"
   let sigForPerm ps = fst $ evalRWS (loopAmp *> gets signal) () $ initAmplifier ps mem
   return $ maximum [sigForPerm p | p <- permutations [0..4]]
 
-part2 :: IO Int
+part2 :: IO Integer
 part2 = do
   mem <- loadMemory "input/Day07.txt"
   let sigForPerm ps = fst $ evalRWS (loopAmp *> gets signal) () $ initAmplifier ps mem
   return $ maximum [sigForPerm p | p <- permutations [5..9]]
 
-initAmplifier :: [Int] -> Memory -> Amplifier
+initAmplifier :: [Integer] -> Memory -> Amplifier
 initAmplifier phases m = let
   (_:active:idle, signal) = fmap last . unzip $ scanl (\(c, o) p -> initAmpModule p o m) (initComputer m, 0) phases
   in
     Amp active idle signal
 
-initAmpModule :: Int -> Int -> Memory -> (Computer, Int)
+initAmpModule :: Integer -> Integer -> Memory -> (Computer, Integer)
 initAmpModule phase input m = fmap head <$> execRWS (runUntil isInput *> local (const input) (runUntil isOutput)) phase $ initComputer m
 
 loopAmp :: AmplifierState ()

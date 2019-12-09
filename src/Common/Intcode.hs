@@ -6,24 +6,24 @@ import Control.Monad ( when )
 import Control.Monad.Trans.RWS.Lazy
 import Common.Util ( toDigits )
 import Data.Functor ( ($>) )
-import Data.Sequence as S hiding ( reverse )
+import Data.Map.Strict as M
 import Text.Parsec.String ( Parser, parseFromFile )
 import Text.Parsec.Char ( char )
 import Text.Parsec.Combinator ( sepBy1 )
 
-type Memory = Seq Int
+type Memory = Map Integer Integer
 
-type Addr = Int
+type Addr = Integer
 
 type InstructionPointer = Addr
 
-data Computer = Computer {inst :: InstructionPointer, mem :: Memory } deriving Show
+data Computer = Computer {inst :: InstructionPointer, offset :: Integer, mem :: Memory } deriving Show
 
-type ComputerState = RWS Int [Int] Computer
+type ComputerState = RWS Integer [Integer] Computer
 
-data ParameterMode = Position | Immediate deriving Show
+data ParameterMode = Position | Immediate | Relative deriving Show
 
-data OpCode = Add (ParameterMode, ParameterMode) | Mult (ParameterMode, ParameterMode) | Input | Output ParameterMode | JumpT (ParameterMode, ParameterMode) | JumpF (ParameterMode, ParameterMode) | IsLess (ParameterMode, ParameterMode) | IsEqual (ParameterMode, ParameterMode) | Term deriving Show
+data OpCode = Add (ParameterMode, ParameterMode, ParameterMode) | Mult (ParameterMode, ParameterMode, ParameterMode) | Input ParameterMode | Output ParameterMode | JumpT (ParameterMode, ParameterMode) | JumpF (ParameterMode, ParameterMode) | IsLess (ParameterMode, ParameterMode, ParameterMode) | IsEqual (ParameterMode, ParameterMode, ParameterMode) | Offset ParameterMode | Term deriving Show
 
 data StepResult = Done TerminationReason | NotDone
 
@@ -51,7 +51,7 @@ isTerm Term = True
 isTerm _ = False
 
 isInput :: OpCode -> Bool
-isInput Input = True
+isInput (Input _) = True
 isInput _ = False
 
 isOutput :: OpCode -> Bool
@@ -61,24 +61,25 @@ isOutput _ = False
 executeAction :: OpCode -> ComputerState ()
 executeAction (Add ms) = arithmeticAction ms (+)
 executeAction (Mult ms) = arithmeticAction ms (*)
-executeAction Input = processInput
+executeAction (Input m) = processInput m
 executeAction (Output m) = processOutput m
 executeAction (JumpT ms) = jumpIf ms (/= 0)
 executeAction (JumpF ms) = jumpIf ms (== 0)
 executeAction (IsLess ms) = Common.Intcode.compare ms (<)
 executeAction (IsEqual ms) = Common.Intcode.compare ms (==)
+executeAction (Offset m) = modifyOffset m
 executeAction Term = return ()
 
-arithmeticAction :: (ParameterMode, ParameterMode) -> (Int -> Int -> Int) -> ComputerState ()
-arithmeticAction (m1, m2) f = do
+arithmeticAction :: (ParameterMode, ParameterMode, ParameterMode) -> (Integer -> Integer -> Integer) -> ComputerState ()
+arithmeticAction (m1, m2, m3) f = do
   x <- consumeParam m1
   y <- consumeParam m2
-  zp <- consumeInst
+  zp <- consumeAddr m3
   writeAddr zp (f x y)
 
-processInput :: ComputerState ()
-processInput = do
-  p <- consumeInst
+processInput :: ParameterMode -> ComputerState ()
+processInput m = do
+  p <- consumeAddr m
   i <- ask
   writeAddr p i
 
@@ -87,86 +88,106 @@ processOutput m = do
   x <- consumeParam m
   tell [x]
 
-jumpIf :: (ParameterMode, ParameterMode) -> (Int -> Bool) -> ComputerState ()
+jumpIf :: (ParameterMode, ParameterMode) -> (Integer -> Bool) -> ComputerState ()
 jumpIf (m1, m2) pred = do
   x <- consumeParam m1
   p <- consumeParam m2
-  when (pred x) $ modify $ \(Computer _ mem) -> Computer p mem
+  when (pred x) $ modify $ \c -> c { inst = p }
 
-compare :: (ParameterMode, ParameterMode) -> (Int -> Int -> Bool) -> ComputerState ()
-compare (m1, m2) pred = do
+compare :: (ParameterMode, ParameterMode, ParameterMode) -> (Integer -> Integer -> Bool) -> ComputerState ()
+compare (m1, m2, m3) pred = do
   x <- consumeParam m1
   y <- consumeParam m2
-  p <- consumeInst
+  p <- consumeAddr m3
   if pred x y then writeAddr p 1 else writeAddr p 0
 
-consumeParam :: ParameterMode -> ComputerState Int
+modifyOffset :: ParameterMode -> ComputerState ()
+modifyOffset m = do
+  change <- consumeParam m
+  off <- gets offset
+  modify (\a -> a { offset = off + change })
+
+consumeParam :: ParameterMode -> ComputerState Integer
 consumeParam m = do
   p <- consumeInst
   readParam m p
 
-consumeInst :: ComputerState Int
+consumeAddr :: ParameterMode -> ComputerState Integer
+consumeAddr m = do
+  o <- gets offset
+  i <- consumeInst
+  return $ case m of
+    Position -> i
+    Relative -> i + o
+    Immediate -> error "Immediate read not supported"
+
+consumeInst :: ComputerState Integer
 consumeInst = do
   x <- readInst
   incrementInst
   return x
 
-readParam :: ParameterMode -> Addr -> ComputerState Int
-readParam m x = case m of
-  Position -> readAddr x
-  Immediate -> return x
+readParam :: ParameterMode -> Addr -> ComputerState Integer
+readParam m x = do
+  offset <- gets offset
+  case m of
+    Position -> readAddr x
+    Immediate -> return x
+    Relative -> readAddr (x + offset)
 
-readAddr :: Addr -> ComputerState Int
+readAddr :: Addr -> ComputerState Integer
 readAddr x = do
-  (Computer _ mem) <- get
-  case S.lookup x mem of
+  mem <- gets mem
+  case M.lookup x mem of
     Just val -> return val
-    Nothing  -> error "Sequence index out of bounds"
+    Nothing  -> return 0
 
-readInst :: ComputerState Int
+readInst :: ComputerState Integer
 readInst = readAddr =<< inst <$> get
 
-writeAddr :: Addr -> Int -> ComputerState ()
-writeAddr addr val = modify $ \(Computer inst mem) -> Computer inst (update addr val mem)
+writeAddr :: Addr -> Integer -> ComputerState ()
+writeAddr addr val = modify $ \(Computer inst offset mem) -> Computer inst offset (insert addr val mem)
 
 incrementInst :: ComputerState ()
-incrementInst = modify $ \(Computer inst mem) -> Computer (inst + 1) mem
+incrementInst = modify $ \(Computer inst offset mem) -> Computer (inst + 1) offset mem
 
-toOpCode :: Int -> OpCode
+toOpCode :: Integer -> OpCode
 toOpCode val = let
   code = val `mod` 100
-  (m1:m2:_) = (reverse . fmap toParameterMode . toDigits $ val `div` 100) ++ repeat Position
+  (m1:m2:m3:_) = (reverse . fmap toParameterMode . toDigits $ val `div` 100) ++ repeat Position
   in 
     case code of
-      1 -> Add (m1, m2)
-      2 -> Mult (m1, m2)
-      3 -> Input
+      1 -> Add (m1, m2, m3)
+      2 -> Mult (m1, m2, m3)
+      3 -> Input m1
       4 -> Output m1
       5 -> JumpT (m1, m2)
       6 -> JumpF (m1, m2)
-      7 -> IsLess (m1, m2)
-      8 -> IsEqual (m1, m2)
+      7 -> IsLess (m1, m2, m3)
+      8 -> IsEqual (m1, m2, m3)
+      9 -> Offset m1
       99 -> Term
       c -> error $ "Invalid OpCode: " ++ show c
 
-toParameterMode :: Int -> ParameterMode
+toParameterMode :: Integer -> ParameterMode
 toParameterMode 0 = Position
 toParameterMode 1 = Immediate
+toParameterMode 2 = Relative
 toParameterMode m = error $ "Invalid parameter mode: " ++ show m
 
 initComputer :: Memory -> Computer
-initComputer = Computer 0
+initComputer = Computer 0 0
 
-initMemory :: Int -> Int -> Memory -> Memory
+initMemory :: Integer -> Integer -> Memory -> Memory
 initMemory noun verb mem = let 
-  mem' = update 1 noun mem
+  mem' = insert 1 noun mem
   in 
-    update 2 verb mem'
+    insert 2 verb mem'
 
 memory :: Parser Memory
 memory = do
   mem <- num `sepBy1` char ','
-  return $ fromList mem
+  return $ fromList $ zip [0..] mem
 
 loadMemory :: FilePath -> IO Memory
 loadMemory f = do
