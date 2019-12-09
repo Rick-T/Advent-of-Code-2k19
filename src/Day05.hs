@@ -5,7 +5,10 @@ import Common.Intcode
 import Control.Monad.Trans.RWS.Lazy
 
 part1 :: IO [Integer]
-part1 = snd . evalRWS runProgram 1 <$> initComputer <$> loadMemory "input/Day05.txt"
+part1 = solve 1
 
 part2 :: IO Integer
-part2 = head . snd . evalRWS runProgram 5 <$> initComputer <$> loadMemory "input/Day05.txt"
+part2 = head <$> solve 5
+
+solve :: Integer -> IO [Integer]
+solve input = snd . evalRWS runProgram input <$> loadComputer "input/Day05.txt"

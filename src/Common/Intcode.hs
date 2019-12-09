@@ -2,7 +2,7 @@ module Common.Intcode where
 
 import Paths_Advent_of_Code_2k19
 import Common.Parsers ( num )
-import Control.Monad ( when )
+import Control.Monad ( liftM2, when )
 import Control.Monad.Trans.RWS.Lazy
 import Common.Util ( toDigits )
 import Data.Functor ( ($>) )
@@ -23,7 +23,16 @@ type ComputerState = RWS Integer [Integer] Computer
 
 data ParameterMode = Position | Immediate | Relative deriving Show
 
-data OpCode = Add (ParameterMode, ParameterMode, ParameterMode) | Mult (ParameterMode, ParameterMode, ParameterMode) | Input ParameterMode | Output ParameterMode | JumpT (ParameterMode, ParameterMode) | JumpF (ParameterMode, ParameterMode) | IsLess (ParameterMode, ParameterMode, ParameterMode) | IsEqual (ParameterMode, ParameterMode, ParameterMode) | Offset ParameterMode | Term deriving Show
+data OpCode = Add (ParameterMode, ParameterMode, ParameterMode)
+            | Mult (ParameterMode, ParameterMode, ParameterMode)
+            | Input ParameterMode | Output ParameterMode
+            | JumpT (ParameterMode, ParameterMode)
+            | JumpF (ParameterMode, ParameterMode)
+            | IsLess (ParameterMode, ParameterMode, ParameterMode)
+            | IsEqual (ParameterMode, ParameterMode, ParameterMode)
+            | Offset ParameterMode
+            | Term
+            deriving Show
 
 data StepResult = Done TerminationReason | NotDone
 
@@ -71,22 +80,13 @@ executeAction (Offset m) = modifyOffset m
 executeAction Term = return ()
 
 arithmeticAction :: (ParameterMode, ParameterMode, ParameterMode) -> (Integer -> Integer -> Integer) -> ComputerState ()
-arithmeticAction (m1, m2, m3) f = do
-  x <- consumeParam m1
-  y <- consumeParam m2
-  zp <- consumeAddr m3
-  writeAddr zp (f x y)
+arithmeticAction (m1, m2, m3) f = liftM2 f (consumeParam m1) (consumeParam m2) >>= consumeWrite m3
 
 processInput :: ParameterMode -> ComputerState ()
-processInput m = do
-  p <- consumeAddr m
-  i <- ask
-  writeAddr p i
+processInput m = ask >>= consumeWrite m
 
 processOutput :: ParameterMode -> ComputerState ()
-processOutput m = do
-  x <- consumeParam m
-  tell [x]
+processOutput m = consumeParam m >>= tell . pure
 
 jumpIf :: (ParameterMode, ParameterMode) -> (Integer -> Bool) -> ComputerState ()
 jumpIf (m1, m2) pred = do
@@ -98,34 +98,28 @@ compare :: (ParameterMode, ParameterMode, ParameterMode) -> (Integer -> Integer 
 compare (m1, m2, m3) pred = do
   x <- consumeParam m1
   y <- consumeParam m2
-  p <- consumeAddr m3
-  if pred x y then writeAddr p 1 else writeAddr p 0
+  consumeWrite m3 $ if pred x y then 1 else 0
 
 modifyOffset :: ParameterMode -> ComputerState ()
 modifyOffset m = do
   change <- consumeParam m
   off <- gets offset
-  modify (\a -> a { offset = off + change })
+  modify (\c -> c { offset = off + change })
 
 consumeParam :: ParameterMode -> ComputerState Integer
-consumeParam m = do
-  p <- consumeInst
-  readParam m p
+consumeParam m = consumeInst >>= readParam m
 
-consumeAddr :: ParameterMode -> ComputerState Integer
-consumeAddr m = do
+consumeWrite :: ParameterMode -> Integer -> ComputerState ()
+consumeWrite m v = do
   o <- gets offset
   i <- consumeInst
-  return $ case m of
-    Position -> i
-    Relative -> i + o
-    Immediate -> error "Immediate read not supported"
+  case m of
+    Position -> writeAddr i v
+    Relative -> writeAddr (i + o) v
+    Immediate -> error "Immediate write not supported"
 
 consumeInst :: ComputerState Integer
-consumeInst = do
-  x <- readInst
-  incrementInst
-  return x
+consumeInst = readInst <* incrementInst
 
 readParam :: ParameterMode -> Addr -> ComputerState Integer
 readParam m x = do
@@ -146,10 +140,14 @@ readInst :: ComputerState Integer
 readInst = readAddr =<< inst <$> get
 
 writeAddr :: Addr -> Integer -> ComputerState ()
-writeAddr addr val = modify $ \(Computer inst offset mem) -> Computer inst offset (insert addr val mem)
+writeAddr addr val = do
+  mem <- gets mem
+  modify $ \c -> c { mem = insert addr val mem }
 
 incrementInst :: ComputerState ()
-incrementInst = modify $ \(Computer inst offset mem) -> Computer (inst + 1) offset mem
+incrementInst = do
+  inst <- gets inst
+  modify $ \c -> c { inst = (inst + 1) }
 
 toOpCode :: Integer -> OpCode
 toOpCode val = let
@@ -178,16 +176,11 @@ toParameterMode m = error $ "Invalid parameter mode: " ++ show m
 initComputer :: Memory -> Computer
 initComputer = Computer 0 0
 
-initMemory :: Integer -> Integer -> Memory -> Memory
-initMemory noun verb mem = let 
-  mem' = insert 1 noun mem
-  in 
-    insert 2 verb mem'
-
 memory :: Parser Memory
-memory = do
-  mem <- num `sepBy1` char ','
-  return $ fromList $ zip [0..] mem
+memory = fromList . zip [0..] <$> num `sepBy1` char ','
+
+loadComputer :: FilePath -> IO Computer
+loadComputer f = initComputer <$> loadMemory f
 
 loadMemory :: FilePath -> IO Memory
 loadMemory f = do
