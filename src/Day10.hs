@@ -10,6 +10,8 @@ type Position = (Int, Int)
 
 type Angle = Double
 
+type Direction = (Int, Int)
+
 type AsteroidField = [Position]
 
 part1 :: IO Int
@@ -36,10 +38,18 @@ bestPosition :: AsteroidField -> Position
 bestPosition asteroids = maximumBy (comparing $ length . asteroidClassesForPosition asteroids) $ asteroids
 
 asteroidClassesForPosition :: AsteroidField -> Position -> [[Position]]
-asteroidClassesForPosition asteroids p = equivalenceClasses (angle p) $ delete p $ asteroids
+asteroidClassesForPosition asteroids p = equivalenceClasses (direction p) $ delete p $ asteroids
 
 distance :: Position -> Position -> Double
 distance (a, b) (x, y) = sqrt $ fromIntegral ((a-x)^2 + (b-y)^2)
+
+direction :: Position -> Position -> Direction
+direction (x, y) (a, b) = let
+  dx = a - x
+  dy = b - y
+  g = gcd dx dy
+  in
+    (dx `div` g, dy `div` g)
 
 angle :: Position -> Position -> Angle
 angle (x, y) (a, b) = pi - (atan2 (fromIntegral $ a - x) (fromIntegral $ b - y))
