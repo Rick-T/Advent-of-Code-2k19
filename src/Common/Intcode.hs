@@ -3,7 +3,7 @@ module Common.Intcode where
 import Paths_Advent_of_Code_2k19
 import Common.Parsers ( num )
 import Control.Monad ( liftM2, when )
-import Control.Monad.Trans.RWS.Lazy
+import Control.Monad.RWS.Lazy
 import Common.Util ( toDigits )
 import Data.Functor ( ($>) )
 import Data.Map.Strict as M
@@ -11,15 +11,17 @@ import Text.Parsec.String ( Parser, parseFromFile )
 import Text.Parsec.Char ( char )
 import Text.Parsec.Combinator ( sepBy1 )
 
-type Memory = Map Integer Integer
+type Val = Integer
 
-type Addr = Integer
+type Memory = Map Val Val
+
+type Addr = Val
 
 type InstructionPointer = Addr
 
-data Computer = Computer {inst :: InstructionPointer, offset :: Integer, mem :: Memory } deriving Show
+data Computer = Computer {inst :: InstructionPointer, offset :: Val, mem :: Memory } deriving Show
 
-type ComputerState = RWS Integer [Integer] Computer
+type ComputerState = RWS Val [Val] Computer
 
 data ParameterMode = Position | Immediate | Relative deriving Show
 
@@ -48,12 +50,40 @@ runUntil stopCode = do
     NotDone -> runUntil stopCode
     Done t -> return t
 
+runUntilNext :: (OpCode -> Bool) -> ComputerState TerminationReason
+runUntilNext stopCode = do
+  next <- toOpCode <$> readInst
+  case next of
+    Term -> return Terminated
+    a | stopCode a -> return ConditionReached
+      | otherwise -> stepOnce stopCode *> runUntilNext stopCode
+
+nextOutput :: ComputerState (Maybe Val)
+nextOutput = do
+  terminationReason <- runUntilNext isOutput
+  case terminationReason of
+    Terminated -> return Nothing
+    ConditionReached -> Just <$> (toOpCode <$> consumeInst >>= processOutput')
+
+nextOutputs :: Int -> ComputerState [Val]
+nextOutputs 0 = return []
+nextOutputs i = do
+  o <- nextOutput
+  case o of
+    Nothing -> return []
+    Just o' -> do
+      others <- nextOutputs (i-1)
+      return $ o':others
+
 stepOnce :: (OpCode -> Bool) -> ComputerState StepResult
 stepOnce stopPred = do
   curVal <- readInst
   case toOpCode curVal of
     Term -> return $ Done Terminated
     a -> incrementInst *> executeAction a $> if stopPred a then Done ConditionReached else NotDone
+
+withInput :: Val -> ComputerState a -> ComputerState a
+withInput i = local (const i)
 
 isTerm :: OpCode -> Bool
 isTerm Term = True
@@ -71,7 +101,7 @@ executeAction :: OpCode -> ComputerState ()
 executeAction (Add ms) = arithmeticAction ms (+)
 executeAction (Mult ms) = arithmeticAction ms (*)
 executeAction (Input m) = processInput m
-executeAction (Output m) = processOutput m
+executeAction (Output m) = processOutput m $> ()
 executeAction (JumpT ms) = jumpIf ms (/= 0)
 executeAction (JumpF ms) = jumpIf ms (== 0)
 executeAction (IsLess ms) = Common.Intcode.compare ms (<)
@@ -79,22 +109,28 @@ executeAction (IsEqual ms) = Common.Intcode.compare ms (==)
 executeAction (Offset m) = modifyOffset m
 executeAction Term = return ()
 
-arithmeticAction :: (ParameterMode, ParameterMode, ParameterMode) -> (Integer -> Integer -> Integer) -> ComputerState ()
+arithmeticAction :: (ParameterMode, ParameterMode, ParameterMode) -> (Val -> Val -> Val) -> ComputerState ()
 arithmeticAction (m1, m2, m3) f = liftM2 f (consumeParam m1) (consumeParam m2) >>= consumeWrite m3
 
 processInput :: ParameterMode -> ComputerState ()
 processInput m = ask >>= consumeWrite m
 
-processOutput :: ParameterMode -> ComputerState ()
-processOutput m = consumeParam m >>= tell . pure
+processOutput :: ParameterMode -> ComputerState Val
+processOutput m = do
+  x <- consumeParam m
+  tell [x]
+  return x
 
-jumpIf :: (ParameterMode, ParameterMode) -> (Integer -> Bool) -> ComputerState ()
+processOutput' :: OpCode -> ComputerState Val
+processOutput' (Output m) = processOutput m
+
+jumpIf :: (ParameterMode, ParameterMode) -> (Val -> Bool) -> ComputerState ()
 jumpIf (m1, m2) pred = do
   x <- consumeParam m1
   p <- consumeParam m2
   when (pred x) $ modify $ \c -> c { inst = p }
 
-compare :: (ParameterMode, ParameterMode, ParameterMode) -> (Integer -> Integer -> Bool) -> ComputerState ()
+compare :: (ParameterMode, ParameterMode, ParameterMode) -> (Val -> Val -> Bool) -> ComputerState ()
 compare (m1, m2, m3) pred = do
   x <- consumeParam m1
   y <- consumeParam m2
@@ -106,10 +142,10 @@ modifyOffset m = do
   off <- gets offset
   modify (\c -> c { offset = off + change })
 
-consumeParam :: ParameterMode -> ComputerState Integer
+consumeParam :: ParameterMode -> ComputerState Val
 consumeParam m = consumeInst >>= readParam m
 
-consumeWrite :: ParameterMode -> Integer -> ComputerState ()
+consumeWrite :: ParameterMode -> Val -> ComputerState ()
 consumeWrite m v = do
   o <- gets offset
   i <- consumeInst
@@ -118,10 +154,10 @@ consumeWrite m v = do
     Relative -> writeAddr (i + o) v
     Immediate -> error "Immediate write not supported"
 
-consumeInst :: ComputerState Integer
+consumeInst :: ComputerState Val
 consumeInst = readInst <* incrementInst
 
-readParam :: ParameterMode -> Addr -> ComputerState Integer
+readParam :: ParameterMode -> Addr -> ComputerState Val
 readParam m x = do
   offset <- gets offset
   case m of
@@ -129,17 +165,17 @@ readParam m x = do
     Immediate -> return x
     Relative -> readAddr (x + offset)
 
-readAddr :: Addr -> ComputerState Integer
+readAddr :: Addr -> ComputerState Val
 readAddr x = do
   mem <- gets mem
   case M.lookup x mem of
     Just val -> return val
     Nothing  -> return 0
 
-readInst :: ComputerState Integer
+readInst :: ComputerState Val
 readInst = readAddr =<< inst <$> get
 
-writeAddr :: Addr -> Integer -> ComputerState ()
+writeAddr :: Addr -> Val -> ComputerState ()
 writeAddr addr val = do
   mem <- gets mem
   modify $ \c -> c { mem = insert addr val mem }
@@ -149,7 +185,7 @@ incrementInst = do
   inst <- gets inst
   modify $ \c -> c { inst = (inst + 1) }
 
-toOpCode :: Integer -> OpCode
+toOpCode :: Val -> OpCode
 toOpCode val = let
   code = val `mod` 100
   (m1:m2:m3:_) = (reverse . fmap toParameterMode . toDigits $ val `div` 100) ++ repeat Position
@@ -167,7 +203,7 @@ toOpCode val = let
       99 -> Term
       c -> error $ "Invalid OpCode: " ++ show c
 
-toParameterMode :: Integer -> ParameterMode
+toParameterMode :: Val -> ParameterMode
 toParameterMode 0 = Position
 toParameterMode 1 = Immediate
 toParameterMode 2 = Relative
