@@ -25,7 +25,7 @@ dependencies:
   - mtl
   - parsec
   - split
-  - transformers
+  - timeit
 
 library:
   source-dirs: src/

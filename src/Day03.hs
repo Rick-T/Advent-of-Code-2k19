@@ -1,4 +1,4 @@
-module Day03 where
+module Day03 ( part1, part2 ) where
 
 import Paths_Advent_of_Code_2k19
 import Common.Parsers

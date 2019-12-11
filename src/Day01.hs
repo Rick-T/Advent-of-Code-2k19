@@ -1,4 +1,4 @@
-module Day01 where
+module Day01 ( part1, part2 ) where
 
 import Paths_Advent_of_Code_2k19
 

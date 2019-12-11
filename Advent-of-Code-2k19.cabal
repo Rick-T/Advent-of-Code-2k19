@@ -63,7 +63,7 @@ library
     , mtl
     , parsec
     , split
-    , transformers
+    , timeit
   default-language: Haskell2010
 
 executable Advent-of-Code-2k19-exe
@@ -80,7 +80,7 @@ executable Advent-of-Code-2k19-exe
     , mtl
     , parsec
     , split
-    , transformers
+    , timeit
   default-language: Haskell2010
 
 test-suite Advent-of-Code-2k19-test
@@ -98,5 +98,5 @@ test-suite Advent-of-Code-2k19-test
     , mtl
     , parsec
     , split
-    , transformers
+    , timeit
   default-language: Haskell2010
