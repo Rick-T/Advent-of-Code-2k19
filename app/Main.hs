@@ -12,31 +12,31 @@ import Day09
 import Day10
 import Day11
 
-import Control.Monad ( forM_ )
-import System.Environment ( getArgs )
-import System.TimeIt ( timeItNamed )
+import Control.Monad (forM_)
+import System.Environment (getArgs)
+import System.TimeIt (timeItNamed)
 
-main :: IO()
+main :: IO ()
 main = do
   puzzles <- fmap read <$> getArgs
   forM_ puzzles runPuzzle
 
-runPuzzle :: Int -> IO()
+runPuzzle :: Int -> IO ()
 runPuzzle p = do
   let (part1, part2) = getFuncs p
   runFirst p part1
   runSecond p part2
 
 getFuncs :: Int -> (IO (), IO ())
-getFuncs 1 = printable (Day01.part1, Day01.part2)
-getFuncs 2 = printable (Day02.part1, Day02.part2)
-getFuncs 3 = printable (Day03.part1, Day03.part2)
-getFuncs 4 = printable (return Day04.part1, return Day04.part2)
-getFuncs 5 = printable (Day05.part1, Day05.part2)
-getFuncs 6 = printable (Day06.part1, Day06.part2)
-getFuncs 7 = printable (Day07.part1, Day07.part2)
-getFuncs 8 = printable (Day08.part1, Day08.part2)
-getFuncs 9 = printable (Day09.part1, Day09.part2)
+getFuncs 1  = printable (Day01.part1, Day01.part2)
+getFuncs 2  = printable (Day02.part1, Day02.part2)
+getFuncs 3  = printable (Day03.part1, Day03.part2)
+getFuncs 4  = printable (return Day04.part1, return Day04.part2)
+getFuncs 5  = printable (Day05.part1, Day05.part2)
+getFuncs 6  = printable (Day06.part1, Day06.part2)
+getFuncs 7  = printable (Day07.part1, Day07.part2)
+getFuncs 8  = printable (Day08.part1, Day08.part2)
+getFuncs 9  = printable (Day09.part1, Day09.part2)
 getFuncs 10 = printable (Day10.part1, Day10.part2)
 getFuncs 11 = printable (Day11.part1, Day11.part2)
 

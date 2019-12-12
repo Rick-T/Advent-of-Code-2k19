@@ -1,16 +1,16 @@
-module Day03 ( part1, part2 ) where
+module Day03 (part1, part2) where
 
 import Paths_Advent_of_Code_2k19
 import Common.Parsers
-import Common.Util                    ( mapBoth)
+import Common.Util (mapBoth)
 import Data.Foldable
 import Data.List
 import Data.Ord
-import Text.Parsec                    ( parse )
-import Text.Parsec.String             ( Parser, parseFromFile )
-import Text.Parsec.Char               ( oneOf, char, digit, endOfLine, letter )
-import Text.Parsec.Combinator         ( many1, sepBy1 )
-import Data.Set                       ( Set, intersection, fromList, map )
+import Text.Parsec (parse)
+import Text.Parsec.String (Parser, parseFromFile)
+import Text.Parsec.Char (oneOf, char, digit, endOfLine, letter)
+import Text.Parsec.Combinator (many1, sepBy1)
+import Data.Set (Set, intersection, fromList, map)
 
 data Direction = U | D | L | R deriving Show
 
@@ -47,12 +47,9 @@ wire :: WireInstructions -> Wire
 wire inst = reverse $ foldl (flip step) [] inst
 
 step :: Instruction -> Wire -> Wire
-step inst              []   = step inst [(0, 0)]
-step (Instruction _ 0) wire = wire
-step (Instruction dir num) wire = let
-    next = moveDir dir $ head wire
-    in
-        step (Instruction dir (num - 1)) $ next : wire
+step inst                  []   = step inst [(0, 0)]
+step (Instruction _   0  ) wire = wire
+step (Instruction dir num) wire = let next = moveDir dir $ head wire in step (Instruction dir (num - 1)) $ next : wire
 
 moveDir :: Direction -> Location -> Location
 moveDir L (x, y) = (x - 1, y)

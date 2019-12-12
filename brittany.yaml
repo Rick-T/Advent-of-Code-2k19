@@ -1,0 +1,4 @@
+conf_layout:
+  lconfig_cols: 160
+  lconfig_allowSingleLineExportList: True
+  lconfig_indentPolicy: IndentPolicyLeft

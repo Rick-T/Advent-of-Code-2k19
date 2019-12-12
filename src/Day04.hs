@@ -1,7 +1,7 @@
-module Day04 ( part1, part2 ) where
+module Day04 (part1, part2) where
 
 import Paths_Advent_of_Code_2k19
-import Common.Util ( toNumber )
+import Common.Util (toNumber)
 import Data.List
 
 type Password = [Int]
