@@ -3,13 +3,7 @@ module Day12 (part1, part2) where
 import Paths_Advent_of_Code_2k19
 import Common.Vector
 
-type Position = Vector Int
-
-type Velocity = Vector Int
-
-type Acceleration = Vector Int
-
-type Body = (Position, Velocity)
+type Body = (Vector Int, Vector Int)
 
 part1 :: Int
 part1 = sum $ fmap energy $ iterate stepTime moons !! 1000
