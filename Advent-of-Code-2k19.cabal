@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 87ebbff50bd83682cb99d1752ab794637a3d416a0f9ced3d3a952e31ac80ae97
+-- hash: 93ffab16255ba80f1d81aac60d2c78831c0c34ec3b77f8b2bf1546b7ecf44d84
 
 name:           Advent-of-Code-2k19
 version:        0.1.0.0
@@ -34,6 +34,7 @@ data-files:
     input/Day09.txt
     input/Day10.txt
     input/Day11.txt
+    input/Day13.txt
 
 source-repository head
   type: git
@@ -57,12 +58,14 @@ library
       Day10
       Day11
       Day12
+      Day13
   other-modules:
       Paths_Advent_of_Code_2k19
   hs-source-dirs:
       src/
   build-depends:
-      base >=4.7 && <5
+      ansi-terminal
+    , base >=4.7 && <5
     , containers
     , mtl
     , parsec
@@ -79,6 +82,7 @@ executable Advent-of-Code-2k19-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Advent-of-Code-2k19
+    , ansi-terminal
     , base >=4.7 && <5
     , containers
     , mtl
@@ -97,6 +101,7 @@ test-suite Advent-of-Code-2k19-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Advent-of-Code-2k19
+    , ansi-terminal
     , base >=4.7 && <5
     , containers
     , mtl
