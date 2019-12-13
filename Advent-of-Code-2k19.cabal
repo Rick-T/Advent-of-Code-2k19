@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9dd8dea7d275dd0ef61447f47305fc5658fd0db2c67f02ba0125f3a703555789
+-- hash: 87ebbff50bd83682cb99d1752ab794637a3d416a0f9ced3d3a952e31ac80ae97
 
 name:           Advent-of-Code-2k19
 version:        0.1.0.0
@@ -44,6 +44,7 @@ library
       Common.Intcode
       Common.Parsers
       Common.Util
+      Common.Vector
       Day01
       Day02
       Day03
