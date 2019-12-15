@@ -48,8 +48,8 @@ produce (chem , num) = do
         then modify $ insert chem (available - num)
         else do
             modify $ insertWith (-) chem available
-            (ingredients, (c, n)) <- lift $ ingredientsFor (chem, num - available)
-            modify $ insertWith (+) c n
+            (ingredients, excess) <- lift $ ingredientsFor (chem, num - available)
+            modify $ uncurry (insertWith (+)) excess
             forM_ ingredients produce
 
 ingredientsFor :: ChemicalAmount -> Reader AlchemyBook ([ChemicalAmount], ChemicalAmount)
@@ -61,8 +61,8 @@ ingredientsFor (chem, n) = do
         Just (ingredients, (_, numResult)) ->
             let
                 reactionsAmount = (1 + ((n - 1) `div` numResult))
-                leftOver        = (reactionsAmount * numResult) - n
-            in return (fmap (* reactionsAmount) <$> ingredients, (chem, leftOver))
+                excess          = (reactionsAmount * numResult) - n
+            in return (fmap (* reactionsAmount) <$> ingredients, (chem, excess))
 
 toChemicalAmount :: String -> ChemicalAmount
 toChemicalAmount s = let [num, chem] = splitOn " " s in (chem, read num)
