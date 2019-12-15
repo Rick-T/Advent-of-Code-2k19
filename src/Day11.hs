@@ -3,6 +3,7 @@ module Day11 (part1, part2) where
 import Paths_Advent_of_Code_2k19
 import Common.Intcode
 import Common.Unicode
+import Common.Util
 import Control.Monad.RWS.Lazy
 import Control.Monad.State
 import Data.List.Split (chunksOf)
@@ -25,10 +26,7 @@ part1 = fst3 . runRWS (evalStateT (runRobot *> countVisited) initRobot) 0 <$> lo
 part2 :: IO ()
 part2 = do
   painting <- fst3 . runRWS (evalStateT (runRobot *> gets hull) initRobot) 0 <$> loadComputer "input/Day11.txt"
-  let ks           = keys painting
-  let (xmin, ymin) = (minimum $ fst <$> ks, minimum $ snd <$> ks)
-  let (xmax, ymax) = (maximum $ fst <$> ks, maximum $ snd <$> ks)
-  mapM_ putStrLn $ chunksOf (xmax - xmin + 1) [ toReadable panel | y <- [ymin .. ymax], x <- [xmin .. xmax], let panel = findWithDefault 0 (x, y) painting ]
+  printMapWithDefault 0 toReadable painting
 
 toReadable :: Val -> Char
 toReadable 0 = fullBlock
