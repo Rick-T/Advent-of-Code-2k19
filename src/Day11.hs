@@ -2,6 +2,7 @@ module Day11 (part1, part2) where
 
 import Paths_Advent_of_Code_2k19
 import Common.Intcode
+import Common.Unicode
 import Control.Monad.RWS.Lazy
 import Control.Monad.State
 import Data.List.Split (chunksOf)
@@ -30,8 +31,8 @@ part2 = do
   mapM_ putStrLn $ chunksOf (xmax - xmin + 1) [ toReadable panel | y <- [ymin .. ymax], x <- [xmin .. xmax], let panel = findWithDefault 0 (x, y) painting ]
 
 toReadable :: Val -> Char
-toReadable 0 = '\x2588'
-toReadable 1 = '\x2591'
+toReadable 0 = fullBlock
+toReadable 1 = lightShade
 
 runRobot :: RobotState ()
 runRobot = do

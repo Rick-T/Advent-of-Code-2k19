@@ -1,6 +1,7 @@
 module Day08 (part1, part2) where
 
 import Paths_Advent_of_Code_2k19
+import Common.Unicode
 import Common.Util (mapBoth)
 import Data.Foldable (maximumBy)
 import Data.Function (on)
@@ -21,8 +22,8 @@ instance Semigroup Pixel where
     p           <> _ = p
 
 instance Show Pixel where
-    show White       = "\x2591"
-    show Black       = "\x2588"
+    show White       = [lightShade]
+    show Black       = [fullBlock]
     show Transparent = " "
     showList = foldl (\f p -> f . shows p) id
 

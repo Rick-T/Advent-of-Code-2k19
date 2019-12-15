@@ -2,6 +2,7 @@ module Day13 (part1, part2) where
 
 import Paths_Advent_of_Code_2k19
 import Common.Intcode
+import Common.Unicode
 import Control.Monad.RWS.Lazy
 import Control.Monad.State
 import Data.Map.Strict as M
@@ -110,10 +111,10 @@ toTile 4 = Ball
 
 toReadable :: Tile -> Char
 toReadable Empty  = ' '
-toReadable Wall   = '\x2588'
-toReadable Block  = '\x2592'
-toReadable Paddle = '\x2580'
-toReadable Ball   = '\x2B24'
+toReadable Wall   = fullBlock
+toReadable Block  = mediumShade
+toReadable Paddle = lowerOneEigthBlock
+toReadable Ball   = circle
 
 initBreakout :: Breakout
 initBreakout = Breakout Nothing Nothing 0 mempty

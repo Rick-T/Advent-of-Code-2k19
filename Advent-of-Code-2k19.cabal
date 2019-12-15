@@ -45,6 +45,7 @@ library
   exposed-modules:
       Common.Intcode
       Common.Parsers
+      Common.Unicode
       Common.Util
       Common.Vector
       Day01
