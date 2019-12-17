@@ -3,6 +3,11 @@ module Common.Util where
 import Data.List.Split (chunksOf)
 import Data.Map.Strict as M (Map(..), findWithDefault, keys, map)
 
+everySecond :: [a] -> [a]
+everySecond []             = []
+everySecond [a           ] = [a]
+everySecond (a : b : rest) = a : everySecond rest
+
 mapBoth :: (a -> b) -> (a, a) -> (b, b)
 mapBoth f (x, y) = (f x, f y)
 

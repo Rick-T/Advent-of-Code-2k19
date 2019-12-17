@@ -81,6 +81,10 @@ nextOutputs i = do
       others <- nextOutputs (i - 1)
       return $ o' : others
 
+feedInput :: Monad a => [Val] -> ComputerStateT a ()
+feedInput []       = return ()
+feedInput (a : as) = withInput a (runUntil isInput) *> feedInput as
+
 stepOnce :: Monad a => (OpCode -> Bool) -> ComputerStateT a StepResult
 stepOnce stopPred = do
   curVal <- readInst
