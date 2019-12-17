@@ -67,7 +67,7 @@ printScreen :: OutputMethod
 printScreen (-1, 0) = printScore (-1, 0)
 printScreen (x , y) = do
   screen <- gets screen
-  liftIO $ setCursorPosition (fromInteger y + 1) $ fromInteger x
+  liftIO $ setCursorPosition (y + 1) x
   liftIO $ putChar $ toReadable $ screen ! (x, y)
 
 noInput :: InputMethod

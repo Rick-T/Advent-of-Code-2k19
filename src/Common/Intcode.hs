@@ -12,7 +12,7 @@ import Text.Parsec.String (Parser, parseFromFile)
 import Text.Parsec.Char (char)
 import Text.Parsec.Combinator (sepBy1)
 
-type Val = Integer
+type Val = Int
 
 type Memory = Map Val Val
 
