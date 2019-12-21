@@ -1,5 +1,8 @@
 module Common.GridMovement where
 
+import Data.Map.Strict as M (Map(..), fromList)
+import Data.HashMap.Lazy as HM (HashMap(..), fromList)
+
 type Position = (Int, Int)
 
 data Direction = North | East | South | West deriving Show
@@ -30,3 +33,12 @@ turnAround North = South
 turnAround South = North
 turnAround East  = West
 turnAround West  = East
+
+toGridHashable :: [[a]] -> HashMap Position a
+toGridHashable input = HM.fromList [ ((x, y), c) | (y, l) <- zip [0 ..] input, (x, c) <- zip [0 ..] l ]
+
+toGrid :: [[a]] -> Map Position a
+toGrid input = M.fromList [ ((x, y), c) | (y, l) <- zip [0 ..] input, (x, c) <- zip [0 ..] l ]
+
+directions :: [Direction]
+directions = [North, East, South, West]

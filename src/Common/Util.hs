@@ -1,7 +1,7 @@
 module Common.Util where
 
-import Data.List.Split (chunksOf)
-import Data.Map.Strict as M (Map(..), findWithDefault, keys, map)
+import Data.List.Split (chunksOf, splitOn)
+import Data.Map.Strict as M (Map(..), findWithDefault, fromList, keys, map)
 
 everySecond :: [a] -> [a]
 everySecond []             = []

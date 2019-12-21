@@ -23,10 +23,13 @@ dependencies:
   - ansi-terminal
   - base >= 4.7 && < 5
   - containers
+  - hashable
   - mtl
   - parsec
+  - psqueues
   - split
   - timeit
+  - unordered-containers
 
 library:
   source-dirs: src/

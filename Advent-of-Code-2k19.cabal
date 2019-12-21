@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5b172caa247392fc46ec2ed05d45931c0e09d5b6fece836bf8d94b52d357317f
+-- hash: 61fe2aebc0d06b61404f6dcb2c95b4410b6e5b5809086919a12c9d7b7ef40327
 
 name:           Advent-of-Code-2k19
 version:        0.1.0.0
@@ -39,6 +39,7 @@ data-files:
     input/Day15.txt
     input/Day16.txt
     input/Day17.txt
+    input/Day18.txt
     input/Day19.txt
 
 source-repository head
@@ -47,6 +48,7 @@ source-repository head
 
 library
   exposed-modules:
+      Common.Dijkstra
       Common.GridMovement
       Common.Intcode
       Common.Parsers
@@ -70,6 +72,7 @@ library
       Day15
       Day16
       Day17
+      Day18
       Day19
   other-modules:
       Paths_Advent_of_Code_2k19
@@ -79,10 +82,13 @@ library
       ansi-terminal
     , base >=4.7 && <5
     , containers
+    , hashable
     , mtl
     , parsec
+    , psqueues
     , split
     , timeit
+    , unordered-containers
   default-language: Haskell2010
 
 executable Advent-of-Code-2k19-exe
@@ -97,10 +103,13 @@ executable Advent-of-Code-2k19-exe
     , ansi-terminal
     , base >=4.7 && <5
     , containers
+    , hashable
     , mtl
     , parsec
+    , psqueues
     , split
     , timeit
+    , unordered-containers
   default-language: Haskell2010
 
 test-suite Advent-of-Code-2k19-test
@@ -116,8 +125,11 @@ test-suite Advent-of-Code-2k19-test
     , ansi-terminal
     , base >=4.7 && <5
     , containers
+    , hashable
     , mtl
     , parsec
+    , psqueues
     , split
     , timeit
+    , unordered-containers
   default-language: Haskell2010
