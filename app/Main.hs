@@ -19,6 +19,7 @@ import Day16
 import Day17
 import Day18
 import Day19
+import Day20
 
 import Control.Monad (forM_)
 import System.Environment (getArgs)
@@ -55,6 +56,7 @@ getFuncs 16 = printable (Day16.part1, Day16.part2)
 getFuncs 17 = printable (Day17.part1, Day17.part2)
 getFuncs 18 = printable (Day18.part1, Day18.part2)
 getFuncs 19 = printable (Day19.part1, Day19.part2)
+getFuncs 20 = printable (Day20.part1, Day20.part2)
 
 printable :: (Show a, Show b) => (IO a, IO b) -> (IO (), IO ())
 printable (a, b) = (print =<< a, print =<< b)
