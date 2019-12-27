@@ -3,7 +3,7 @@ module Day23 where
 import Paths_Advent_of_Code_2k19
 import Common.Intcode
 import Control.Monad.State.Lazy
-import Control.Monad.RWS.Lazy
+import Control.Monad.RWS.Strict
 import Data.IntMap.Strict as M
 import Data.Sequence as S
 

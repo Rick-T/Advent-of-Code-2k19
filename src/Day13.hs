@@ -3,7 +3,7 @@ module Day13 (part1, part2) where
 import Paths_Advent_of_Code_2k19
 import Common.Intcode
 import Common.Unicode
-import Control.Monad.RWS.Lazy
+import Control.Monad.RWS.Strict
 import Control.Monad.State
 import Data.Map.Strict as M
 import System.Console.ANSI

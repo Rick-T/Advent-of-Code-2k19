@@ -5,7 +5,7 @@ import Common.Intcode
 import Common.Unicode
 import Common.Util
 import Control.Monad
-import Control.Monad.RWS.Lazy
+import Control.Monad.RWS.Strict
 import Data.Map.Strict as M
 import System.Console.ANSI
 

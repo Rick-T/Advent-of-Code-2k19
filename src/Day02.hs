@@ -2,7 +2,7 @@ module Day02 (part1, part2) where
 
 import Paths_Advent_of_Code_2k19
 import Common.Intcode
-import Control.Monad.RWS.Lazy
+import Control.Monad.RWS.Strict
 
 part1 :: IO Val
 part1 = solve 12 2 <$> loadComputer "input/Day02.txt"

@@ -5,7 +5,7 @@ import Common.GridMovement
 import Common.Intcode
 import Common.Util
 import Control.Monad
-import Control.Monad.RWS.Lazy
+import Control.Monad.RWS.Strict
 import Control.Monad.State
 import Data.Char (chr, intToDigit, ord)
 import Data.List (inits, intersperse, permutations)

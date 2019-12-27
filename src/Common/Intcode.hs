@@ -3,24 +3,24 @@ module Common.Intcode where
 import Paths_Advent_of_Code_2k19
 import Common.Parsers (num)
 import Control.Monad (liftM2, when)
-import Control.Monad.RWS.Lazy
+import Control.Monad.RWS.Strict
 import Common.Util (toDigits)
 import Data.Functor (($>))
 import Data.Functor.Identity
-import Data.Map.Strict as M
+import Data.HashMap.Strict as M
 import Text.Parsec.String (Parser, parseFromFile)
 import Text.Parsec.Char (char)
 import Text.Parsec.Combinator (sepBy1)
 
 type Val = Int
 
-type Memory = Map Val Val
+type Memory = HashMap Val Val
 
 type Addr = Val
 
 type InstructionPointer = Addr
 
-data Computer = Computer {inst :: InstructionPointer, offset :: Val, mem :: Memory } deriving Show
+data Computer = Computer {inst :: InstructionPointer, offset :: Val, mem :: Memory } deriving (Eq, Ord, Show)
 
 type ComputerState = ComputerStateT Identity
 

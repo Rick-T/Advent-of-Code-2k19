@@ -4,7 +4,7 @@ import Paths_Advent_of_Code_2k19
 import Common.Intcode
 import Common.GridMovement
 import Common.Util
-import Control.Monad.RWS.Lazy
+import Control.Monad.RWS.Strict
 import Control.Monad.State
 import Data.List
 import Data.Map.Strict as M

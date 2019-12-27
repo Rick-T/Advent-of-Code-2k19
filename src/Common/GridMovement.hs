@@ -5,7 +5,7 @@ import Data.HashMap.Lazy as HM (HashMap(..), fromList)
 
 type Position = (Int, Int)
 
-data Direction = North | East | South | West deriving Show
+data Direction = North | East | South | West deriving (Eq, Ord, Show)
 
 move :: Position -> Direction -> Position
 move = moveN 1

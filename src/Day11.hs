@@ -4,7 +4,7 @@ import Paths_Advent_of_Code_2k19
 import Common.Intcode
 import Common.Unicode
 import Common.Util
-import Control.Monad.RWS.Lazy
+import Control.Monad.RWS.Strict
 import Control.Monad.State
 import Data.List.Split (chunksOf)
 import Data.Map.Strict
